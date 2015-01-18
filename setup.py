@@ -1,8 +1,8 @@
 from setuptools import setup
 
 setup(name='pymasker',
-      version='0.1',
-      description='The funniest joke in the world',
+      version='0.1.1',
+      description='python package for mask generation from landsat 8 Quality Assessment Band',
       url='https://github.com/dz316424/pymasker',
       author='Haoliang Yu',
       author_email='njkon@foxmail.com',

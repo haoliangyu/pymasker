@@ -1,18 +1,17 @@
 import gdal
 import numpy as np
-from enum import IntEnum
 
-class confidence(IntEnum):
+class confidence():
 	'''Represents levels of confidence that a condition exists
 
- 	yes 		-	Algorithm has high confidence that this condition exists (67-100 percent confidence).
- 	maybe 		-	Algorithm has medium confidence that this condition exists (34-66 percent confidence).
- 	no 			-	Algorithm has low to no confidence that this condition exists (0-33 percent confidence)
+ 	high 		-	Algorithm has high confidence that this condition exists (67-100 percent confidence).
+ 	medium 		-	Algorithm has medium confidence that this condition exists (34-66 percent confidence).
+ 	low 			-	Algorithm has low to no confidence that this condition exists (0-33 percent confidence)
     undefine	- 	Algorithm did not determine the status of this condition.
 	'''
-	yes = 3
-	maybe = 2
-	no = 1
+	high = 3
+	medium = 2
+	low = 1
 	undefine = 0
 
 class masker:
@@ -107,19 +106,19 @@ class masker:
 
 		# Water body pixel
 		if water != confidence.undefine:
-			mask = mask | self.__masking(4, 3, int(water), cumulative)
+			mask = mask | self.__masking(4, 3, water, cumulative)
 
 		# Snow pixel
 		if snow != confidence.undefine:
-			mask = mask | self.__masking(10, 3, int(snow), cumulative)
+			mask = mask | self.__masking(10, 3, snow, cumulative)
 
 		# Cirrus pixel
 		if cirrus != confidence.undefine:
-			mask = mask | self.__masking(12, 3, int(cirrus), cumulative)
+			mask = mask | self.__masking(12, 3, cirrus, cumulative)
 
 		# Cloud pixel
 		if cloud != confidence.undefine:
-			mask = mask | self.__masking(14, 3, int(cloud), cumulative)
+			mask = mask | self.__masking(14, 3, cloud, cumulative)
 
 		return mask.astype(int)
 
