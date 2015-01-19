@@ -8,11 +8,13 @@ class confidence():
  	medium 		-	Algorithm has medium confidence that this condition exists (34-66 percent confidence).
  	low 		-	Algorithm has low to no confidence that this condition exists (0-33 percent confidence)
     undefined	- 	Algorithm did not determine the status of this condition.
+    none		-	Nothing.
 	'''
 	high = 3
 	medium = 2
 	low = 1
 	undefined = 0
+	none = -1
 
 class qabmasker:
 	'''Provides access to functions that produces masks from quality assessment band of Landsat 8'''
@@ -35,7 +37,7 @@ class qabmasker:
 		Parameters
 			conf		-	Level of confidence that cloud exists.
 			cirrus		-	A value indicating whether the mask includes cirrus.
-			cumulative	-	A boolean value indicating whether the masking is cumulative.
+			cumulative	-	A Boolean value indicating whether the masking is cumulative.
 
 		Return
 			mask 		-	A two-dimension binary mask.
@@ -49,11 +51,11 @@ class qabmasker:
 		return mask.astype(int)
 
 	def getvegmask(self, conf, cumulative = False):
-		'''Generate a vegetation mask.
+		'''Generate a veg mask.
 
 		Parameters
-			conf		-	Level of confidence that vegetation exists.
-			cumulative	-	A boolean value indicating whether the masking is cumulative.
+			conf		-	Level of confidence that veg exists.
+			cumulative	-	A Boolean value indicating whether the masking is cumulative.
 
 		Return
 			mask 		-	A two-dimension binary mask.
@@ -65,7 +67,7 @@ class qabmasker:
 
 		Parameters
 			conf		-	Level of confidence that water body exists.
-			cumulative	-	A boolean value indicating whether the masking is cumulative.
+			cumulative	-	A Boolean value indicating whether the masking is cumulative.
 
 		Return
 			mask 		-	A two-dimension binary mask.
@@ -77,23 +79,24 @@ class qabmasker:
 
 		Parameters
 			conf		-	Level of confidence that snow/ice exists.
-			cumulative	-	A boolean value indicating whether the masking is cumulative.
+			cumulative	-	A Boolean value indicating whether the masking is cumulative.
 
 		Return
 			mask 		-	A two-dimension binary mask.
 		'''
 		return self.__masking(10, 3, conf, cumulative).astype(int)
 
-	def getmask(self, cloud, cirrus, snow, vegetation, water, inclusive = False, cumulative = False):
+	def getmask(self, cloud, cirrus, snow, veg, water, inclusive = False, cumulative = False):
 		'''Get mask with given conditions.
 
 		Parameters
 			cloud		-	Level of confidence that cloud exists.
 			cirrus		-	Level of confidence that cirrus exists.
 			snow		-	Level of confidence that snow/ice exists.
+			veg			-	Level of confidence that vegetation exists.
 			water		-	Level of confidence that water body exists.
-			inclusive	-	A boolean value indicating whether the masking is inclusive or exclusive.
-			cumulative	-	A boolean value indicating whether the masking is cumulative.
+			inclusive	-	A Boolean value indicating whether the masking is inclusive or exclusive.
+			cumulative	-	A Boolean value indicating whether the masking is cumulative.
 
 		Returns
 			mask 		-	A two-dimension binary mask.
@@ -105,8 +108,8 @@ class qabmasker:
 		else:
 			mask = self.qaband >= 0
 
-		# Vegetation pixel
-		mask = self.__masking2(mask, 8, 3, vegetation, cumulative, inclusive)
+		# veg pixel
+		mask = self.__masking2(mask, 8, 3, veg, cumulative, inclusive)
 
 		# Snow pixel
 		mask = self.__masking2(mask, 10, 3, snow, cumulative, inclusive)
@@ -129,7 +132,7 @@ class qabmasker:
 			bitloc		-	Location of the specific QA bits in the value string.
 			bitlen		-	Length of the specific QA bits.
 			value  		-	A value indicating the desired condition.
-			cumulative	-	A boolean value indicating whether the masking is cumulative.
+			cumulative	-	A Boolean value indicating whether the masking is cumulative.
 		'''
 
 		posValue = bitlen << bitloc
@@ -146,13 +149,16 @@ class qabmasker:
 		''''Get mask with specific parameters.
 
 		Parameters
-			basemask	-	
+			basemask	-	Base mask.
 			bitloc		-	Location of the specific QA bits in the value string.
 			bitlen		-	Length of the specific QA bits.
 			value  		-	A value indicating the desired condition.
-			inclusive	-	A boolean value indicating whether the masking is inclusive or exclusive.
-			cumulative	-	A boolean value indicating whether the masking is cumulative.
+			inclusive	-	A Boolean value indicating whether the masking is inclusive or exclusive.
+			cumulative	-	A Boolean value indicating whether the masking is cumulative.
 		'''
+
+		if value == confidence.none:
+			return basemask
 
 		mask = self.__masking(bitloc, bitlen, value, cumulative)
 
