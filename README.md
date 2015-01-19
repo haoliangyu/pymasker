@@ -92,4 +92,6 @@ Sample code for multi-criteria masking
 	# Save the result if you want.
 	masker.savetif(mask, r'D:\result.tif')
 
+![Result](http://haoliangyu.net/images/GIS/masking-pymasker/maskresult.png)
+
 Now you have your mask! Nice and quick!
