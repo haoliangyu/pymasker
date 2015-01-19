@@ -6,15 +6,15 @@ class confidence():
 
  	high 		-	Algorithm has high confidence that this condition exists (67-100 percent confidence).
  	medium 		-	Algorithm has medium confidence that this condition exists (34-66 percent confidence).
- 	low 			-	Algorithm has low to no confidence that this condition exists (0-33 percent confidence)
-    undefine	- 	Algorithm did not determine the status of this condition.
+ 	low 		-	Algorithm has low to no confidence that this condition exists (0-33 percent confidence)
+    undefined	- 	Algorithm did not determine the status of this condition.
 	'''
 	high = 3
 	medium = 2
 	low = 1
-	undefine = 0
+	undefined = 0
 
-class masker:
+class qabmasker:
 	'''Provides access to functions that produces masks from quality assessment band of Landsat 8'''
 
 	def __init__(self, filepath):
@@ -27,7 +27,7 @@ class masker:
 			filepath	-	Path of band file.
 		'''
 		self.bandfile = gdal.Open(filepath)
-		self.bqaband = self.bandfile.GetRasterBand(1).ReadAsArray()
+		self.qaband = self.bandfile.GetRasterBand(1).ReadAsArray()
 
 	def getcloudmask(self, conf, cirrus = True, cumulative = False):
 		'''Generate a cloud mask.
@@ -40,10 +40,25 @@ class masker:
 		Return
 			mask 		-	A two-dimension binary mask.
 		'''
+
+		mask = self.__masking(14, 3, conf, cumulative)
+
 		if cirrus:
-			return self.getmask(conf, conf, confidence.undefine, confidence.undefine, cumulative)
-		else:
-			return self.getmask(conf, confidence.undefine, confidence.undefine, confidence.undefine, cumulative)
+			mask = self.__masking2(msk, 12, 3, conf, False, cumulative)
+
+		return mask.astype(int)
+
+	def getvegmask(self, conf, cumulative = False):
+		'''Generate a vegetation mask.
+
+		Parameters
+			conf		-	Level of confidence that vegetation exists.
+			cumulative	-	A boolean value indicating whether the masking is cumulative.
+
+		Return
+			mask 		-	A two-dimension binary mask.
+		'''
+		return self.__masking(8, 3, conf, cumulative).astype(int)
 
 	def getwatermask(self, conf, cumulative = False):
 		'''Generate a water body mask.
@@ -55,7 +70,7 @@ class masker:
 		Return
 			mask 		-	A two-dimension binary mask.
 		'''
-		return self.getmask(confidence.undefine, confidence.undefine, confidence.undefine, conf, cumulative)			
+		return self.__masking(4, 3, conf, cumulative).astype(int)
 
 	def getsnowmask(self, conf, cumulative = False):
 		'''Generate a water body mask.
@@ -67,9 +82,9 @@ class masker:
 		Return
 			mask 		-	A two-dimension binary mask.
 		'''
-		return self.getmask(confidence.undefine, confidence.undefine, conf, confidence.undefine, cumulative)	
+		return self.__masking(10, 3, conf, cumulative).astype(int)
 
-	def getmask(self, cloud, cirrus, snow, water, cumulative = False):
+	def getmask(self, cloud, cirrus, snow, vegetation, water, inclusive = False, cumulative = False):
 		'''Get mask with given conditions.
 
 		Parameters
@@ -77,53 +92,38 @@ class masker:
 			cirrus		-	Level of confidence that cirrus exists.
 			snow		-	Level of confidence that snow/ice exists.
 			water		-	Level of confidence that water body exists.
-			occluded	-	A value indicating whether it is terrain occluded.
-			frame		-	A value indicating whether it is dropped frame.
-			filled		-	A value indicating whether it is filled.
+			inclusive	-	A boolean value indicating whether the masking is inclusive or exclusive.
 			cumulative	-	A boolean value indicating whether the masking is cumulative.
 
 		Returns
 			mask 		-	A two-dimension binary mask.
 		'''
 
-		# # Filled pixel
-		# posValue = 1 << 0
-		# conValue = int(filled) << 0
-		# mask = (self.bqaband & posValue) == conValue
+		# Basic mask
+		if inclusive:
+			mask = self.qaband < 0
+		else:
+			mask = self.qaband >= 0
 
-		# # Frame pixel
-		# posValue = 1 << 1
-		# conValue = int(frame) << 1
-		# mask = mask | ((self.bqaband & posValue) == conValue)
-
-		# # Terrain occluded pixel
-		# posValue = 1 << 2
-		# conValue = int(frame) << 2
-		# mask = mask | ((self.bqaband & posValue) == conValue)
-
-		# Temporary
-		mask = self.bqaband < 0
-
-		# Water body pixel
-		if water != confidence.undefine:
-			mask = mask | self.__masking(4, 3, water, cumulative)
+		# Vegetation pixel
+		mask = self.__masking2(mask, 8, 3, vegetation, cumulative, inclusive)
 
 		# Snow pixel
-		if snow != confidence.undefine:
-			mask = mask | self.__masking(10, 3, snow, cumulative)
+		mask = self.__masking2(mask, 10, 3, snow, cumulative, inclusive)
 
 		# Cirrus pixel
-		if cirrus != confidence.undefine:
-			mask = mask | self.__masking(12, 3, cirrus, cumulative)
+		mask = self.__masking2(mask, 12, 3, cirrus, cumulative, inclusive)
 
 		# Cloud pixel
-		if cloud != confidence.undefine:
-			mask = mask | self.__masking(14, 3, cloud, cumulative)
+		mask = self.__masking2(mask, 14, 3, cloud, cumulative, inclusive)
+
+		# Water body pixel
+		mask = self.__masking2(mask, 4, 3, water, cumulative, inclusive)
 
 		return mask.astype(int)
 
 	def __masking(self, bitloc, bitlen, value, cumulative):
-		''''Get mask with specific parameters.
+		'''Get mask with specific parameters.
 
 		Parameters
 			bitloc		-	Location of the specific QA bits in the value string.
@@ -131,15 +131,37 @@ class masker:
 			value  		-	A value indicating the desired condition.
 			cumulative	-	A boolean value indicating whether the masking is cumulative.
 		'''
+
 		posValue = bitlen << bitloc
 		conValue = value << bitloc
 
 		if cumulative:
-			return ((self.bqaband & posValue) >= conValue)
-		else:	
-			return ((self.bqaband & posValue) == conValue)
+			mask = (self.qaband & posValue) >= conValue
+		else:
+			mask = (self.qaband & posValue) == conValue	
+		
+		return mask	
 
-	def save(self, mask, filepath):
+	def __masking2(self, basemask, bitloc, bitlen, value, cumulative, inclusive):
+		''''Get mask with specific parameters.
+
+		Parameters
+			basemask	-	
+			bitloc		-	Location of the specific QA bits in the value string.
+			bitlen		-	Length of the specific QA bits.
+			value  		-	A value indicating the desired condition.
+			inclusive	-	A boolean value indicating whether the masking is inclusive or exclusive.
+			cumulative	-	A boolean value indicating whether the masking is cumulative.
+		'''
+
+		mask = self.__masking(bitloc, bitlen, value, cumulative)
+
+		if inclusive:
+			return np.logical_or(basemask, mask)
+		else:
+			return np.logical_and(basemask, mask)
+
+	def savetif(self, mask, filepath):
 		'''Save the given mask as a .tif file.
 
 		Parameters
