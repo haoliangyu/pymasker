@@ -91,7 +91,7 @@ class qabmasker:
 		        cirrus = confidence.none, cirrus_cum = False,
 		        snow = confidence.none, snow_cum = False, 
 		        veg = confidence.none, veg_cum = False,
-		        water = confidence.nonw, water_cum = False,
+		        water = confidence.none, water_cum = False,
 		        inclusive = False):
 		'''Get mask with given conditions.
 
