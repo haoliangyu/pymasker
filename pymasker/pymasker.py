@@ -86,17 +86,27 @@ class qabmasker:
 		'''
 		return self.__masking(10, 3, conf, cumulative).astype(int)
 
-	def getmask(self, cloud, cirrus, snow, veg, water, inclusive = False, cumulative = False):
+	def getmask(self, 
+		        cloud = confidence.none, cloud_cum = False, 
+		        cirrus = confidence.none, cirrus_cum = False,
+		        snow = confidence.none, snow_cum = False, 
+		        veg = confidence.none, veg_cum = False,
+		        water = confidence.nonw, water_cum = False,
+		        inclusive = False):
 		'''Get mask with given conditions.
 
 		Parameters
-			cloud		-	Level of confidence that cloud exists.
-			cirrus		-	Level of confidence that cirrus exists.
-			snow		-	Level of confidence that snow/ice exists.
-			veg			-	Level of confidence that vegetation exists.
-			water		-	Level of confidence that water body exists.
+			cloud		-	Level of confidence that cloud exists. (default: confidence.none)
+			cloud_cum	-	A Boolean value indicating whether the cloud masking is cumulative.
+			cirrus		-	Level of confidence that cirrus exists. (default: confidence.none)
+			cirrus_cum	-	A Boolean value indicating whether the cirrus masking is cumulative. (default: False)
+			snow		-	Level of confidence that snow/ice exists. (default: confidence.none)
+			snow_cum 	-	A Boolean value indicating whether the snow masking is cumulative. (default: False)
+			veg			-	Level of confidence that vegetation exists. (default: confidence.none)
+			veg_cum		-	A Boolean value indicating whether the vegetation masking is cumulative. (default: False)
+			water		-	Level of confidence that water body exists. (default: confidence.none)
+			water_cum	-	A Boolean value indicating whether the water body masking is cumulative. (default: False)
 			inclusive	-	A Boolean value indicating whether the masking is inclusive or exclusive.
-			cumulative	-	A Boolean value indicating whether the masking is cumulative.
 
 		Returns
 			mask 		-	A two-dimension binary mask.
@@ -109,19 +119,19 @@ class qabmasker:
 			mask = self.qaband >= 0
 
 		# veg pixel
-		mask = self.__masking2(mask, 8, 3, veg, cumulative, inclusive)
+		mask = self.__masking2(mask, 8, 3, veg, veg_cum, inclusive)
 
 		# Snow pixel
-		mask = self.__masking2(mask, 10, 3, snow, cumulative, inclusive)
+		mask = self.__masking2(mask, 10, 3, snow, snow_cum, inclusive)
 
 		# Cirrus pixel
-		mask = self.__masking2(mask, 12, 3, cirrus, cumulative, inclusive)
+		mask = self.__masking2(mask, 12, 3, cirrus, cirrus_cum, inclusive)
 
 		# Cloud pixel
-		mask = self.__masking2(mask, 14, 3, cloud, cumulative, inclusive)
+		mask = self.__masking2(mask, 14, 3, cloud, cloud_cum, inclusive)
 
 		# Water body pixel
-		mask = self.__masking2(mask, 4, 3, water, cumulative, inclusive)
+		mask = self.__masking2(mask, 4, 3, water, water_cum, inclusive)
 
 		return mask.astype(int)
 

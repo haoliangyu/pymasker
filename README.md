@@ -77,20 +77,15 @@ To generate a mask, you need to define a desired confidence for the target condi
 
 *Pymasker* also provides a function for multi-criteria masking. In this function, you need to specify the confidence level of each condition. If you don't want the function consider one of conditions, you need to set it as confidence.none. Two different masking methods are provided:
 
-* inclusive	-	Mask pixels that meet at least one of all criteria.
-* exclusive -	Only Mask pixels that meet all criteria. (default)
+* Inclusive	-	Mask pixels that meet at least one of all criteria.
+* Exclusive -	Only Mask pixels that meet all criteria. (default)
 
 Sample code for multi-criteria masking
 
 	:::python
 	# Get mask indicating cloud pixels (high confidence) and cirrus pixels (high confidence).
-	mask = masker.getmask(cloud = confidence.high,
-						  cirrus = confidence.high,
-						  veg = confidence.none,
-						  snow = confidence.none,
-						  water = confidence.none,
-						  inclusive = False,
-						  cumulative = False)
+	# Exclusive and noncumulative
+	mask = masker.getmask(cloud = confidence.high, cirrus = confidence.high)
 
 	# Save the result if you want.
 	masker.savetif(mask, r'D:\result.tif')
