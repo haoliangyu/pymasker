@@ -31,7 +31,6 @@ The QA band contains the detection result of the following four specific conditi
 
 For each condition, the algorithm gives a confidence to indicate its existence on the pixel.
 
-	:::python
 	from pymasker import confidence
 
 	# Algorithm has high confidence that this condition exists (67-100 percent confidence).
@@ -53,7 +52,6 @@ To generate a mask, you need to define a desired confidence for the target condi
 
 *Pymasker* provides several functions to get the most commonly used mask. The resulting mask is a binary numpy array with 1 representing existence of specific condition and 0 representing nonexistence.
 
-	:::python
 	# Get mask indicating cloud pixels with high confidence 
 	# (excluding cirrus)
 	mask = masker.getcloudmask(confidence.high)
@@ -82,12 +80,13 @@ To generate a mask, you need to define a desired confidence for the target condi
 
 Sample code for multi-criteria masking
 
-	:::python
 	# Get mask indicating cloud pixels (high confidence) and cirrus pixels (high confidence).
 	# Exclusive and noncumulative
 	mask = masker.getmask(cloud = confidence.high, cirrus = confidence.high)
 
 	# Save the result if you want.
 	masker.savetif(mask, r'D:\result.tif')
+
+![Result](http://haoliangyu.net/images/GIS/masking-pymasker/maskresult.png)
 
 Now you have your mask! Nice and quick!
