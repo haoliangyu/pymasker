@@ -40,6 +40,7 @@ class qabmasker:
 		Parameters
 			array		-	Numpy array that contains the band data. 
 		'''
+		self.bandfile = None
 		self.qabband = array
 
 	def getcloudmask(self, conf, cirrus = True, cumulative = False):
@@ -203,7 +204,10 @@ class qabmasker:
 		y_pixels = mask.shape[0] 
 
 		dataset = driver.Create(filepath, x_pixels, y_pixels, 1, gdal.GDT_Int32)
-		dataset.SetGeoTransform(self.bandfile.GetGeoTransform())
-		dataset.SetProjection(self.bandfile.GetProjectionRef())
+
+		if self.bandfile is not None:
+			dataset.SetGeoTransform(self.bandfile.GetGeoTransform())
+			dataset.SetProjection(self.bandfile.GetProjectionRef())
+			
 		dataset.GetRasterBand(1).WriteArray(mask)
 		dataset.FlushCache()
