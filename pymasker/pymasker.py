@@ -1,4 +1,3 @@
-import gdal
 import numpy as np
 
 class confidence():
@@ -19,17 +18,29 @@ class confidence():
 class qabmasker:
 	'''Provides access to functions that produces masks from quality assessment band of Landsat 8'''
 
-	def __init__(self, filepath):
-		self.load(filepath)
+	def __init__(self, band):
+		if type(band) is str:
+			self.loadfile(band)
+		else:
+			self.loadarray(band)
 
-	def load(self, filepath):
-		'''Load the BQA band from a give path
+	def loadfile(self, filepath):
+		'''Load the BQA band file from a give path
 
 		Parameters
 			filepath	-	Path of band file.
 		'''
+		import gdal
 		self.bandfile = gdal.Open(filepath)
-		self.qaband = self.bandfile.GetRasterBand(1).ReadAsArray()
+		self.qabband = self.bandfile.GetRasterBand(1).ReadAsArray()
+
+	def loadarray(self, array):
+		'''Load the BQA ban from a np.array
+
+		Parameters
+			array		-	Numpy array that contains the band data. 
+		'''
+		self.qabband = array
 
 	def getcloudmask(self, conf, cirrus = True, cumulative = False):
 		'''Generate a cloud mask.
@@ -114,9 +125,9 @@ class qabmasker:
 
 		# Basic mask
 		if inclusive:
-			mask = self.qaband < 0
+			mask = self.qabband < 0
 		else:
-			mask = self.qaband >= 0
+			mask = self.qabband >= 0
 
 		# veg pixel
 		mask = self.__masking2(mask, 8, 3, veg, veg_cum, inclusive)
@@ -149,9 +160,9 @@ class qabmasker:
 		conValue = value << bitloc
 
 		if cumulative:
-			mask = (self.qaband & posValue) >= conValue
+			mask = (self.qabband & posValue) >= conValue
 		else:
-			mask = (self.qaband & posValue) == conValue	
+			mask = (self.qabband & posValue) == conValue	
 		
 		return mask	
 
@@ -184,6 +195,7 @@ class qabmasker:
 			mask 		-	A mask generated with masker.
 			filepath	-	Path of .tif file.
 		'''
+		import gdal	
 
 		driver = gdal.GetDriverByName('GTiff')
 
