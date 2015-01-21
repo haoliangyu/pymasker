@@ -12,7 +12,7 @@ Or just install it with the source code.
 
 	python setup.py install
 
-This package depends on [**numpy**](http://www.numpy.org/) and [**GDAL**](https://pypi.python.org/pypi/GDAL/).
+This package depends on [**numpy**](http://www.numpy.org/). If you want to load the band file directly, [**GDAL**](https://pypi.python.org/pypi/GDAL/) is also in need.
 
 ## Sample
 
@@ -21,7 +21,11 @@ First of all, you need to load the QA band into the *qabmaser* class.
 ```python
 from pymasker import qabmasker
 
+# load the band file directly
 masker = qabmasker(r'D:\LC80170302014272LGN00_BQA.TIF')
+
+# load an numpy array that contains band data.
+masker = qabmasker(bandarray)
 ```
 
 The QA band contains the detection result of the following four specific conditions for each pixel:
