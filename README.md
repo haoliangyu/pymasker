@@ -33,6 +33,7 @@ The QA band contains the detection result of the following four specific conditi
 * Cloud
 * Cirrus
 * Snow/Ice
+* Vegetation
 * Water body
 
 For each condition, the algorithm gives a confidence to indicate its existence on the pixel.
