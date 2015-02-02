@@ -1,2 +1,5 @@
-from .pymasker import qabmasker
-from .pymasker import confidence
+from landsatmasker import landsatmasker
+from landsatmasker import confidence
+from masker import masker
+
+__all__ = ['masker', 'landsatmasker', 'confidence']

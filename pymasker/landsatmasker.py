@@ -1,5 +1,7 @@
 import numpy as np
 
+from masker import masker
+
 class confidence():
 	'''Represents levels of confidence that a condition exists
 
@@ -15,33 +17,8 @@ class confidence():
 	undefined = 0
 	none = -1
 
-class qabmasker:
-	'''Provides access to functions that produces masks from quality assessment band of Landsat 8'''
-
-	def __init__(self, band):
-		if type(band) is str:
-			self.loadfile(band)
-		else:
-			self.loadarray(band)
-
-	def loadfile(self, filepath):
-		'''Load the BQA band file from a give path
-
-		Parameters
-			filepath	-	Path of band file.
-		'''
-		import gdal
-		self.bandfile = gdal.Open(filepath)
-		self.qabband = self.bandfile.GetRasterBand(1).ReadAsArray()
-
-	def loadarray(self, array):
-		'''Load the BQA ban from a np.array
-
-		Parameters
-			array		-	Numpy array that contains the band data. 
-		'''
-		self.bandfile = None
-		self.qabband = array
+class landsatmasker(masker):
+	'''Provides access to functions that produces masks from quality assessment band of Landsat 8.'''
 
 	def getcloudmask(self, conf, cirrus = True, cumulative = False):
 		'''Generate a cloud mask.
@@ -98,14 +75,14 @@ class qabmasker:
 		'''
 		return self.__masking(10, 3, conf, cumulative).astype(int)
 
-	def getmask(self, 
-		        cloud = confidence.none, cloud_cum = False, 
-		        cirrus = confidence.none, cirrus_cum = False,
-		        snow = confidence.none, snow_cum = False, 
-		        veg = confidence.none, veg_cum = False,
-		        water = confidence.none, water_cum = False,
-		        inclusive = False):
-		'''Get mask with given conditions.
+	def getmultimask(self, 
+			        cloud = confidence.none, cloud_cum = False, 
+			        cirrus = confidence.none, cirrus_cum = False,
+			        snow = confidence.none, snow_cum = False, 
+			        veg = confidence.none, veg_cum = False,
+			        water = confidence.none, water_cum = False,
+			        inclusive = False):
+		'''Get mask with multiple conditions.
 
 		Parameters
 			cloud		-	Level of confidence that cloud exists. (default: confidence.none)
@@ -126,9 +103,9 @@ class qabmasker:
 
 		# Basic mask
 		if inclusive:
-			mask = self.qabband < 0
+			mask = self.bandarray < 0
 		else:
-			mask = self.qabband >= 0
+			mask = self.bandarray >= 0
 
 		# veg pixel
 		mask = self.__masking2(mask, 8, 3, veg, veg_cum, inclusive)
@@ -161,9 +138,9 @@ class qabmasker:
 		conValue = value << bitloc
 
 		if cumulative:
-			mask = (self.qabband & posValue) >= conValue
+			mask = (self.bandarray & posValue) >= conValue
 		else:
-			mask = (self.qabband & posValue) == conValue	
+			mask = (self.bandarray & posValue) == conValue	
 		
 		return mask	
 
@@ -188,26 +165,3 @@ class qabmasker:
 			return np.logical_or(basemask, mask)
 		else:
 			return np.logical_and(basemask, mask)
-
-	def savetif(self, mask, filepath):
-		'''Save the given mask as a .tif file.
-
-		Parameters
-			mask 		-	A mask generated with masker.
-			filepath	-	Path of .tif file.
-		'''
-		import gdal	
-
-		driver = gdal.GetDriverByName('GTiff')
-
-		x_pixels = mask.shape[1]
-		y_pixels = mask.shape[0] 
-
-		dataset = driver.Create(filepath, x_pixels, y_pixels, 1, gdal.GDT_Int32)
-
-		if self.bandfile is not None:
-			dataset.SetGeoTransform(self.bandfile.GetGeoTransform())
-			dataset.SetProjection(self.bandfile.GetProjectionRef())
-			
-		dataset.GetRasterBand(1).WriteArray(mask)
-		dataset.FlushCache()
