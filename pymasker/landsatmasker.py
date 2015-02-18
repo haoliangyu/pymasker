@@ -35,7 +35,7 @@ class landsatmasker(masker):
 		mask = self.__masking(14, 3, conf, cumulative)
 
 		if cirrus:
-			mask = self.__masking2(msk, 12, 3, conf, False, cumulative)
+			mask = self.__masking2(mask, 12, 3, conf, False, cumulative)
 
 		return mask.astype(int)
 

@@ -5,7 +5,7 @@ class masker:
 	'''Provides access to functions that produces masks from remote sensing image, according to its bit structure.'''
 
 	def __init__(self, band, *var):
-
+		
 		if type(band) is str:
 			if len(var) > 0:
 				self.loadfile(band, var[0])
@@ -33,7 +33,7 @@ class masker:
 			self.bandarray = gdal.Open(subdataset).ReadAsArray()
 		else:
 			bandfile = gdal.Open(filename)
-			self.bandarray = self.bandfile.GetRasterBand(1).ReadAsArray()
+			self.bandarray = bandfile.GetRasterBand(1).ReadAsArray()
 
 	def loadarray(self, array):
 		'''Load the BQA ban from a np.array
