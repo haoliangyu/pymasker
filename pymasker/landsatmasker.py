@@ -3,7 +3,7 @@ import numpy as np
 from masker import masker
 
 class confidence():
-	'''Represents levels of confidence that a condition exists
+	'''Levels of confidence that a condition exists
 
  	high 		-	Algorithm has high confidence that this condition exists (67-100 percent confidence).
  	medium 		-	Algorithm has medium confidence that this condition exists (34-66 percent confidence).
@@ -40,7 +40,7 @@ class landsatmasker(masker):
 		return mask.astype(int)
 
 	def getvegmask(self, conf, cumulative = False):
-		'''Generate a veg mask.
+		'''Generate a vegetation mask.
 
 		Parameters
 			conf		-	Level of confidence that veg exists.
