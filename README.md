@@ -14,6 +14,8 @@ Or just install it with the source code.
 
 This package depends on [**numpy**](http://www.numpy.org/). If you want to load the band file directly, [**GDAL**](https://pypi.python.org/pypi/GDAL/) is also in need.
 
+An ArcMap python toolbox based on this package could be find [here](https://github.com/dz316424/arcmasker).
+
 ## Use Sample
 
 * [Landsat 8 Quality Assessment band](http://haoliangyu.net/making-masks-with-landsat-8-quality-assessment-band-using-python.html#.VM_7Ny5SWjg)
