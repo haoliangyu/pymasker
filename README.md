@@ -18,6 +18,6 @@ An ArcMap python toolbox based on this package could be find [here](https://gith
 
 ## Use Sample
 
-* [Landsat 8 Quality Assessment band](https://github.com/haoliangyu/pymasker/wiki/Landsat-8-Quality-Assessment-Band-use-sample)
+* [Landsat 8 Quality Assessment band](http://haoliangyu.github.io/2015/01/18/Making-masks-with-Landsat-8-Quality-Assessment-band-using-Python/)
 
-* [MODIS land products](https://github.com/haoliangyu/pymasker/wiki/MODIS-use-sample)
+* [MODIS land products](http://haoliangyu.github.io/2015/02/19/Making-masks-from-Quality-Control-bits-of-MODIS-land-products-in-Python-Update/)
