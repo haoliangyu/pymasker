@@ -53,10 +53,7 @@ class Masker(object):
             bit_len		-	Length of the specific QA bits.
             value  		-	A value indicating the desired condition.
         '''
-        len_str = ''
-        for i in range(bit_len):
-            len_str += '1'
-        bitlen = int(len_str, 2)
+        bitlen = int('1' * bit_len, 2)
 
         if type(value) == str:
             value = int(value, 2)
@@ -127,8 +124,7 @@ class LandsatMasker(Masker):
             mask 		-	A two-dimension binary mask.
         '''
 
-        mask = self.__get_mask(14, 3, conf, cumulative)
-        return mask.astype(int)
+        return self.__get_mask(14, 3, conf, cumulative).astype(int)
 
     def get_cirrus_mask(self, conf, cumulative = False):
         '''Generate a cirrus mask.
@@ -141,8 +137,7 @@ class LandsatMasker(Masker):
             mask 		-	A two-dimension binary mask.
         '''
 
-        mask = self.__get_mask(12, 3, conf, cumulative)
-        return mask.astype(int)
+        return self.__get_mask(12, 3, conf, cumulative).astype(int)
 
     def get_veg_mask(self, conf, cumulative = False):
         '''Generate a vegetation mask.
@@ -259,12 +254,12 @@ class ModisQuality(object):
     low_cloud	-	Corrected product not produced due to cloud effects for all bands.
     '''
 
-    high = 0,
-    medium = 1,
-    low = 2,
+    high = 0
+    medium = 1
+    low = 2
     low_cloud = 3
 
-class ModisMasker(masker):
+class ModisMasker(Masker):
     '''Provides access to functions that produce QA masks from quality assessment band of MODIS land products.'''
 
     def get_qa_mask(self, quality):
@@ -289,7 +284,6 @@ parser.add_argument('-c', '--confidence', help='level of confidence that a condi
 parser.add_argument('-t', '--target', help='target object: cloud, cirrus, water, vegetation, snow', action='store')
 
 # modis argument
-parser.add_argument('-b', '--band', help='Band number of QA band', action='store')
 parser.add_argument('-q', '--quality', help='Level of data quality of MODIS land products at each pixel: high, medium, low, low_cloud', action='store')
 
 args = parser.parse_args()
@@ -305,7 +299,7 @@ if args.source == 'landsat':
 
     masker = LandsatMasker(args.input)
 
-    if args.taget == 'cloud':
+    if args.target == 'cloud':
         mask = masker.get_cloud_mask(conf_value[args.confidence])
     elif args.target == 'cirrus':
         mask = masker.get_cirrus_mask(conf_value[args.confidence])
@@ -328,8 +322,8 @@ elif args.source == 'modis':
         'low_cloud': ModisQuality.low_cloud
     }
 
-    masker = ModisMasker(args.inout, args.band)
+    masker = ModisMasker(args.input, 3)
     mask = masker.get_qa_mask(quality_value[args.quality])
-    masker.save_tif(args.output)
+    masker.save_tif(mask, args.output)
 else:
     raise Exception('Given source %s is unrecongized.' % args.source)
