@@ -8,5 +8,8 @@ setup(name='pymasker',
       author_email='haoliang.yu@outlook.com',
       license='MIT',
       py_modules=['pymasker'],
-      install_requires=['numpy',],
+      entry_points={
+        "console_scripts": ['pymasker = pymasker:main']  
+      },
+      install_requires=['numpy', 'gdal'],
       zip_safe=False)

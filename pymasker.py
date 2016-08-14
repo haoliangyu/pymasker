@@ -274,56 +274,61 @@ class ModisMasker(Masker):
 
         return self.get_mask(0, 2, quality).astype(int)
 
-parser = argparse.ArgumentParser()
-parser.add_argument('-s', '--source', help='source type: landsat, modis', type=str)
-parser.add_argument('-i', '--input', help='input image file path', type=str)
-parser.add_argument('-o', '--output', help='output raster path')
+def main():
 
-# landsat arguments
-parser.add_argument('-c', '--confidence', help='level of confidence that a condition exists in a landsat image: high, medium, low, undefined, none', action='store')
-parser.add_argument('-t', '--target', help='target object: cloud, cirrus, water, vegetation, snow', action='store')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-s', '--source', help='source type: landsat, modis', type=str)
+    parser.add_argument('-i', '--input', help='input image file path', type=str)
+    parser.add_argument('-o', '--output', help='output raster path')
 
-# modis argument
-parser.add_argument('-q', '--quality', help='Level of data quality of MODIS land products at each pixel: high, medium, low, low_cloud', action='store')
+    # landsat arguments
+    parser.add_argument('-c', '--confidence', help='level of confidence that a condition exists in a landsat image: high, medium, low, undefined, none', action='store')
+    parser.add_argument('-t', '--target', help='target object: cloud, cirrus, water, vegetation, snow', action='store')
 
-args = parser.parse_args()
+    # modis argument
+    parser.add_argument('-q', '--quality', help='Level of data quality of MODIS land products at each pixel: high, medium, low, low_cloud', action='store')
 
-if args.source == 'landsat':
-    conf_value = {
-        'high': LandsatConfidence.high,
-        'medium': LandsatConfidence.medium,
-        'low': LandsatConfidence.low,
-        'undefined': LandsatConfidence.undefined,
-        'none': LandsatConfidence.none
-    }
+    args = parser.parse_args()
 
-    masker = LandsatMasker(args.input)
+    if args.source == 'landsat':
+        conf_value = {
+            'high': LandsatConfidence.high,
+            'medium': LandsatConfidence.medium,
+            'low': LandsatConfidence.low,
+            'undefined': LandsatConfidence.undefined,
+            'none': LandsatConfidence.none
+        }
 
-    if args.target == 'cloud':
-        mask = masker.get_cloud_mask(conf_value[args.confidence])
-    elif args.target == 'cirrus':
-        mask = masker.get_cirrus_mask(conf_value[args.confidence])
-    elif args.target == 'water':
-        mask = masker.get_water_mask(conf_value[args.confidence])
-    elif args.target == 'vegetation':
-        mask = masker.get_veg_mask(conf_value[args.confidence])
-    elif args.target == 'snow':
-        mask = masker.get_snow_mask(conf_value[args.confidence])
+        masker = LandsatMasker(args.input)
+
+        if args.target == 'cloud':
+            mask = masker.get_cloud_mask(conf_value[args.confidence])
+        elif args.target == 'cirrus':
+            mask = masker.get_cirrus_mask(conf_value[args.confidence])
+        elif args.target == 'water':
+            mask = masker.get_water_mask(conf_value[args.confidence])
+        elif args.target == 'vegetation':
+            mask = masker.get_veg_mask(conf_value[args.confidence])
+        elif args.target == 'snow':
+            mask = masker.get_snow_mask(conf_value[args.confidence])
+        else:
+            raise Exception('Masker type %s is unrecongized.' % args.target)
+
+        masker.save_tif(mask, args.output)
+
+    elif args.source == 'modis':
+        quality_value = {
+            'high': ModisQuality.high,
+            'medium': ModisQuality.medium,
+            'low': ModisQuality.low,
+            'low_cloud': ModisQuality.low_cloud
+        }
+
+        masker = ModisMasker(args.input, 3)
+        mask = masker.get_qa_mask(quality_value[args.quality])
+        masker.save_tif(mask, args.output)
     else:
-        raise Exception('Masker type %s is unrecongized.' % args.target)
+        raise Exception('Given source %s is unrecongized.' % args.source)
 
-    masker.save_tif(mask, args.output)
-
-elif args.source == 'modis':
-    quality_value = {
-        'high': ModisQuality.high,
-        'medium': ModisQuality.medium,
-        'low': ModisQuality.low,
-        'low_cloud': ModisQuality.low_cloud
-    }
-
-    masker = ModisMasker(args.input, 3)
-    mask = masker.get_qa_mask(quality_value[args.quality])
-    masker.save_tif(mask, args.output)
-else:
-    raise Exception('Given source %s is unrecongized.' % args.source)
+if __name__ == "__main__":
+    main()
