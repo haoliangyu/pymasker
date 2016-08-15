@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='pymasker',
-      version='0.3.0',
+      version='0.3.1',
       description='python package for mask generation from landsat 8 Quality Assessment band and MODIS land products.',
       url='https://github.com/haoliangyu/pymasker',
       author='Haoliang Yu',
@@ -9,7 +9,7 @@ setup(name='pymasker',
       license='MIT',
       py_modules=['pymasker'],
       entry_points={
-        "console_scripts": ['pymasker = pymasker:main']  
+        "console_scripts": ['pymasker = pymasker:main']
       },
       install_requires=['numpy', 'gdal'],
       zip_safe=False)

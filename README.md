@@ -45,8 +45,8 @@ For MODIS land products
 from pymasker import ModisMasker
 from pymasker import ModisQuality
 
-# load the QA band directly, whose band number is 3
-masker = ModisMasker('LC80170302014272LGN00_BQA.TIF', 3)
+# load the QA band directly
+masker = ModisMasker('MOD09GQ.A2015025.h12v04.005.2015027064556.hdf')
 
 # Corrected product produced at ideal quality for all bands.
 quality = ModisQuality.high

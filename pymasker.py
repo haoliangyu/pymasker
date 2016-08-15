@@ -262,6 +262,9 @@ class ModisQuality(object):
 class ModisMasker(Masker):
     '''Provides access to functions that produce QA masks from quality assessment band of MODIS land products.'''
 
+    def __init__(self, file_path):
+        super(ModisMasker, self).__init__(file_path, 3)
+
     def get_qa_mask(self, quality):
         '''Get a quality mask.
 
