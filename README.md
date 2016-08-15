@@ -101,6 +101,9 @@ The following two articles explains the mechanism behind the tool in detail.
 
 ## Change Log
 
-* **3.0.0**
+* **0.3.1**
+  * Simplify the initialization of ModisMasker
+
+* **0.3.0**
   * **BREAKING CHANGE** change most class and function names according to pep8
   * add command line tool
