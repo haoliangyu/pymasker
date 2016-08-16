@@ -52,7 +52,7 @@ masker = ModisMasker('MOD09GQ.A2015025.h12v04.005.2015027064556.hdf')
 quality = ModisQuality.high
 
 # Create a MODIS QA masker
-mask = masker.get_qa_mask(conf)
+mask = masker.get_qa_mask(quality)
 
 # save the result
 masker.save_tif(mask, 'result.tif')
