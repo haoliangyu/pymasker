@@ -327,7 +327,7 @@ def main():
             'low_cloud': ModisQuality.low_cloud
         }
 
-        masker = ModisMasker(args.input, 3)
+        masker = ModisMasker(args.input)
         mask = masker.get_qa_mask(quality_value[args.quality])
         masker.save_tif(mask, args.output)
     else:

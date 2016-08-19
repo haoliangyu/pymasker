@@ -99,6 +99,10 @@ The following two articles explains the mechanism behind the tool in detail.
 
 * [MODIS land products](http://haoliangyu.github.io/2015/02/19/Making-masks-from-Quality-Control-bits-of-MODIS-land-products-in-Python-Update/)
 
+## For JavaScript Developer
+
+[node-qa-masker](https://github.com/haoliangyu/node-qa-masker) provides the same masking functionality in NodeJS.
+
 ## Change Log
 
 * **0.3.1**
