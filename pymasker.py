@@ -181,7 +181,7 @@ class LandsatMasker(Masker):
         Return
             mask        -   A two-dimensional binary mask
         '''
-        return self.__get_mask(0, 1, LandsatConfidence.low, False)
+        return self.__get_mask(0, 1, 1, False)
 
     def get_multi_mask(self,
         cloud = LandsatConfidence.none, cloud_cum = False,
