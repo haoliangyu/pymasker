@@ -175,6 +175,14 @@ class LandsatMasker(Masker):
         '''
         return self.__get_mask(10, 3, conf, cumulative).astype(int)
 
+    def get_fill_mask(self):
+        '''Generate a fill mask.
+
+        Return
+            mask        -   A two-dimensional binary mask
+        '''
+        return self.__get_mask(0, 1, LandsatConfidence.low, False)
+
     def get_multi_mask(self,
         cloud = LandsatConfidence.none, cloud_cum = False,
         cirrus = LandsatConfidence.none, cirrus_cum = False,
