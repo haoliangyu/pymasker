@@ -105,6 +105,9 @@ The following two articles explains the mechanism behind the tool in detail.
 
 ## Change Log
 
+* **0.3.2**
+  * Simplify the initialization of ModisMasker
+
 * **0.3.1**
   * Simplify the initialization of ModisMasker
 
