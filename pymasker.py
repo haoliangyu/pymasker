@@ -8,7 +8,7 @@ class Masker(object):
     def __init__(self, band, **var):
 
         if type(band) is str:
-            if var['band_num'] > 0:
+            if 'band_num' in var:
                 self.load_file(band, var['band_num'])
             else:
                 self.load_file(band)
@@ -121,7 +121,7 @@ class LandsatMasker(Masker):
             raise Exception('Collection number must be 0 or 1.')
 
         self.collection = var['collection']
-        super(LandsatMasker, self).__init__(file_path, 3)
+        super(LandsatMasker, self).__init__(file_path)
 
     def get_no_cloud_mask(self):
         '''Generate a mask for pixels with no cloud.
@@ -131,11 +131,11 @@ class LandsatMasker(Masker):
         '''
 
         if self.collection == 0:
-            return self.__get_mask(14, 3, 1, False).astype(int)
+            raise Exception('Non-cloud mask is not available for pre-collection data.')
         elif self.collection == 1:
             return self.__get_mask(4, 1, 0, False).astype(int)
 
-    def get_cloud_mask(self, conf, cumulative = False):
+    def get_cloud_mask(self, conf=None, cumulative=False):
         '''Generate a cloud mask.
 
         Parameters
@@ -147,6 +147,9 @@ class LandsatMasker(Masker):
         '''
 
         if self.collection == 0:
+            if conf is None or conf == -1:
+                raise Exception('Confidence value is required for creating cloud mask from pre-collection data.')
+
             return self.__get_mask(14, 3, conf, cumulative).astype(int)
         elif self.collection == 1 and (conf is None or conf == -1):
             return self.__get_mask(4, 1, 1, False).astype(int)
@@ -197,6 +200,9 @@ class LandsatMasker(Masker):
         '''
 
         if self.collection == 0:
+            if conf == 1 or conf == 3:
+                raise Exception('Creating water mask for pre-collection data only accepts confidence value 0 and 2.')
+
             return self.__get_mask(4, 3, conf, cumulative).astype(int)
         elif self.collection == 1:
             raise Exception('Water mask is not available for Lansat pre-collection data.')
@@ -213,6 +219,9 @@ class LandsatMasker(Masker):
         '''
 
         if self.collection == 0:
+            if conf == 1 or conf == 2:
+                raise Exception('Creating snow mask for pre-collection data only accepts confidence value 0 and 3.')
+
             return self.__get_mask(10, 3, conf, cumulative).astype(int)
         elif self.collection == 1:
             return self.__get_mask(9, 3, conf, cumulative).astype(int)
@@ -283,6 +292,7 @@ def main():
     parser.add_argument('-s', '--source',
                         help='source type: landsat, modis',
                         required=True,
+                        choices=['landsat', 'modis'],
                         type=str)
     parser.add_argument('-i', '--input',
                         help='input image file path',
@@ -332,10 +342,10 @@ def main():
             mask = masker.get_fill_mask()
         elif args.mask == 'cloud_shadow':
             mask = masker.get_cloud_shadow_mask(conf_value[args.confidence])
-        elif args.mask == 'cloud' and 'confidence' in args:
+        elif args.mask == 'cloud' and args.confidence is not None:
             mask = masker.get_cloud_mask(conf_value[args.confidence])
         elif args.mask == 'cloud':
-            mask = masker.get_cloud_mask(-1)
+            mask = masker.get_cloud_mask()
         elif args.mask == 'cirrus':
             mask = masker.get_cirrus_mask(conf_value[args.confidence])
         elif args.mask == 'water':
