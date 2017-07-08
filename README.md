@@ -1,6 +1,6 @@
 # pymasker
 
-Pymasker is a python package to generate various masks from the Landsat 8 Quality Assessment band and MODIS land products.
+Pymasker is a python package to generate various masks from the Landsat Quality Assessment band and MODIS land products.
 
 ## Installation
 
@@ -12,15 +12,15 @@ Or just install it with the source code.
 
 	python setup.py install
 
-This package depends on [**numpy**](http://www.numpy.org/) and [**GDAL**](https://pypi.python.org/pypi/GDAL/).
+This package depends on [numpy](http://www.numpy.org/) and [GDAL](https://pypi.python.org/pypi/GDAL/).
 
-An ArcMap python toolbox based on this package could be find [**here**](https://github.com/dz316424/arcmasker).
+An ArcMap python toolbox based on this package could be find [here](https://github.com/haoliangyu/arcmasker).
 
 ## Use Example
 
 ### Python
 
-For Landsat 8 Quality Accessment band
+For Landsat [pre-collection](https://landsat.usgs.gov/qualityband) and [collection-1](https://landsat.usgs.gov/collectionqualityband) Quality Accessment band
 
 ``` python
 from pymasker import LandsatMasker
@@ -29,7 +29,8 @@ from pymasker import LandsatConfidence
 # load the QA band directly
 masker = LandsatMasker('LC80170302014272LGN00_BQA.TIF')
 
-# algorithm has high confidence that this condition exists (67-100 percent confidence)
+# algorithm has high confidence that this condition exists
+# (67-100 percent confidence)
 conf = LandsatConfidence.high
 
 # Get mask indicating cloud pixels with high confidence
@@ -61,34 +62,43 @@ masker.save_tif(mask, 'result.tif')
 ### Command Line
 
 ``` bash
-pymasker -s landsat -i landsat.tif -o mask.tif -c high -t cirrus
+pymasker [source] [input.tif] [output.tif] [options...]
 ```
 
-General parameters:
+Required arguments:
 
 ```
--s, --source SOURCE
-                      source type: landsat, modis
--i, --input INPUT
-                      input image file path
--o, --output OUTPUT
-                      output raster path
+source SOURCE
+  source type: landsat, modis
+
+input INPUT
+  input image file path
+
+output OUTPUT
+  output raster path
 ```
 
-Landsat parameters:
+Landsat arguments:
 
 ```
 -c, --confidence CONFIDENCE
-                      level of confidence that a condition exists in a landsat image: high, medium, low, undefined, none
--t, --target TARGET
-                      target object: cloud, cirrus, water, vegetation, snow
+  level of confidence that a condition exists in a landsat image:
+  high, medium, low, undefined, none
+
+-cv, --confidence_value CONFIDENCE VALUE
+   confidence values: -1, 0, 1, 2, 3
+
+-m, --mask MASK
+  pre-collection mask: fill, cloud, cirrus, water, snow
+  collection-1 mask: fill, no_cloud, cloud, cloud_shadow, cirrus, snow
 ```
 
-MODIS parameters:
+MODIS arguments:
 
 ```
 -q, --quality QUALITY
-                      Level of data quality of MODIS land products at each pixel: high, medium, low, low_cloud
+  Level of data quality of MODIS land products at each pixel:
+  high, medium, low, low_cloud
 ```
 
 ## More Detail
@@ -102,15 +112,3 @@ The following two articles explains the mechanism behind the tool in detail.
 ## For JavaScript Developer
 
 [node-qa-masker](https://github.com/haoliangyu/node-qa-masker) provides the same masking functionality in NodeJS.
-
-## Change Log
-
-* **0.3.2**
-  * Add `get_fill_mask()` to LandsatMasker (thanks to [kbasten](https://github.com/kbasten))
-
-* **0.3.1**
-  * Simplify the initialization of ModisMasker
-
-* **0.3.0**
-  * **BREAKING CHANGE** change most class and function names according to pep8
-  * add command line tool

@@ -289,19 +289,20 @@ class ModisMasker(Masker):
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s', '--source',
+    parser.add_argument('source',
                         help='source type: landsat, modis',
-                        required=True,
                         choices=['landsat', 'modis'],
                         type=str)
-    parser.add_argument('-i', '--input',
+    parser.add_argument('input',
                         help='input image file path',
-                        required=True,
                         type=str)
-    parser.add_argument('-o', '--output',
+    parser.add_argument('output',
                         help='output raster path',
-                        required=True,
                         type=str)
+    parser.add_argument('-cv', '--confidence_value',
+                        help='confidence value',
+                        choices=[-1, 0, 1, 2, 3],
+                        type=int)
 
     # landsat arguments
     parser.add_argument('-C', '--collection',
@@ -335,23 +336,24 @@ def main():
         }
 
         masker = LandsatMasker(args.input, collection=args.collection)
+        value = conf_value[args.confidence] if args.confidence is not None else args.confidence_value
 
         if args.mask == 'no_cloud':
             mask = masker.get_no_cloud_mask()
         elif args.mask == 'fill':
             mask = masker.get_fill_mask()
         elif args.mask == 'cloud_shadow':
-            mask = masker.get_cloud_shadow_mask(conf_value[args.confidence])
+            mask = masker.get_cloud_shadow_mask(value)
         elif args.mask == 'cloud' and args.confidence is not None:
-            mask = masker.get_cloud_mask(conf_value[args.confidence])
+            mask = masker.get_cloud_mask(value)
         elif args.mask == 'cloud':
             mask = masker.get_cloud_mask()
         elif args.mask == 'cirrus':
-            mask = masker.get_cirrus_mask(conf_value[args.confidence])
+            mask = masker.get_cirrus_mask(value)
         elif args.mask == 'water':
-            mask = masker.get_water_mask(conf_value[args.confidence])
+            mask = masker.get_water_mask(value)
         elif args.mask == 'snow':
-            mask = masker.get_snow_mask(conf_value[args.confidence])
+            mask = masker.get_snow_mask(value)
         else:
             raise Exception('Masker type %s is unrecongized.' % args.mask)
 
@@ -366,7 +368,7 @@ def main():
         }
 
         masker = ModisMasker(args.input)
-        mask = masker.get_qa_mask(quality_value[args.quality])
+        mask = masker.get_qa_mask(quality_value[args.confidence])
         masker.save_tif(mask, args.output)
     else:
         raise Exception('Given source %s is unrecongized.' % args.source)
