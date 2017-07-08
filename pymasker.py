@@ -5,11 +5,11 @@ import numpy as np
 class Masker(object):
     '''Provides access to functions that produces masks from remote sensing image, according to its bit structure.'''
 
-    def __init__(self, band, *var):
+    def __init__(self, band, **var):
 
         if type(band) is str:
-            if len(var) > 0:
-                self.load_file(band, var[0])
+            if 'band_num' in var:
+                self.load_file(band, var['band_num'])
             else:
                 self.load_file(band)
         else:
@@ -113,125 +113,126 @@ class LandsatConfidence(object):
 class LandsatMasker(Masker):
     '''Provides access to functions that produces masks from quality assessment band of Landsat 8.'''
 
-    def get_cloud_mask(self, conf, cumulative = False):
+    def __init__(self, file_path, **var):
+
+        if 'collection' not in var:
+            raise Exception('Collection number is required for landsast masker.')
+        elif var['collection'] != 1 and var['collection'] != 0:
+            raise Exception('Collection number must be 0 or 1.')
+
+        self.collection = var['collection']
+        super(LandsatMasker, self).__init__(file_path)
+
+    def get_no_cloud_mask(self):
+        '''Generate a mask for pixels with no cloud.
+
+        Return
+            mask        -   A two-dimensional binary mask
+        '''
+
+        if self.collection == 0:
+            raise Exception('Non-cloud mask is not available for pre-collection data.')
+        elif self.collection == 1:
+            return self.__get_mask(4, 1, 0, False).astype(int)
+
+    def get_cloud_mask(self, conf=None, cumulative=False):
         '''Generate a cloud mask.
 
         Parameters
             conf		-	Level of confidence that cloud exists.
-            cumulative	-	A Boolean value indicating whether the masking is cumulative.
+            cumulative	-	A Boolean value indicating whether to get masker with confidence value larger than the given one..
 
         Return
             mask 		-	A two-dimension binary mask.
         '''
 
-        return self.__get_mask(14, 3, conf, cumulative).astype(int)
+        if self.collection == 0:
+            if conf is None or conf == -1:
+                raise Exception('Confidence value is required for creating cloud mask from pre-collection data.')
 
-    def get_cirrus_mask(self, conf, cumulative = False):
-        '''Generate a cirrus mask.
+            return self.__get_mask(14, 3, conf, cumulative).astype(int)
+        elif self.collection == 1 and (conf is None or conf == -1):
+            return self.__get_mask(4, 1, 1, False).astype(int)
+        elif self.collection == 1:
+            return self.__get_mask(5, 3, conf, cumulative).astype(int)
 
-        Parameters
-            conf		-	Level of confidence that cloud exists.
-            cumulative	-	A Boolean value indicating whether the masking is cumulative.
-
-        Return
-            mask 		-	A two-dimension binary mask.
-        '''
-
-        return self.__get_mask(12, 3, conf, cumulative).astype(int)
-
-    def get_veg_mask(self, conf, cumulative = False):
-        '''Generate a vegetation mask.
-
-        Parameters
-            conf		-	Level of confidence that veg exists.
-            cumulative	-	A Boolean value indicating whether the masking is cumulative.
-
-        Return
-            mask 		-	A two-dimension binary mask.
-        '''
-        return self.__get_mask(8, 3, conf, cumulative).astype(int)
-
-    def get_water_mask(self, conf, cumulative = False):
-        '''Generate a water body mask.
+    def get_cloud_shadow_mask(self, conf, cumulative = False):
+        '''Generate a cloud shadow mask. Note that the cloud shadow mask is only available for collection 1 data.
 
         Parameters
             conf		-	Level of confidence that water body exists.
-            cumulative	-	A Boolean value indicating whether the masking is cumulative.
+            cumulative	-	A Boolean value indicating whether to get masker with confidence value larger than the given one..
 
         Return
             mask 		-	A two-dimension binary mask.
         '''
-        return self.__get_mask(4, 3, conf, cumulative).astype(int)
+
+        if self.collection == 0:
+            raise Exception('Water mask is not available for Lansat collection 1 data.')
+        elif self.collection == 1:
+            return self.__get_mask(7, 3, conf, cumulative).astype(int)
+
+    def get_cirrus_mask(self, conf, cumulative = False):
+        '''Generate a cirrus mask. Note that the cirrus mask is only available for Landsat-8 images.
+
+        Parameters
+            conf		-	Level of confidence that cloud exists.
+            cumulative	-	A Boolean value indicating whether to get masker with confidence value larger than the given one..
+
+        Return
+            mask 		-	A two-dimension binary mask.
+        '''
+
+        if self.collection == 0:
+            return self.__get_mask(12, 3, conf, cumulative).astype(int)
+        elif self.collection == 1:
+            return self.__get_mask(11, 3, conf, cumulative).astype(int)
+
+    def get_water_mask(self, conf, cumulative = False):
+        '''Generate a water body mask. Note that the waster mask is only available for pre-collection data.
+
+        Parameters
+            conf		-	Level of confidence that water body exists.
+            cumulative	-	A Boolean value indicating whether to get masker with confidence value larger than the given one..
+
+        Return
+            mask 		-	A two-dimension binary mask.
+        '''
+
+        if self.collection == 0:
+            if conf == 1 or conf == 3:
+                raise Exception('Creating water mask for pre-collection data only accepts confidence value 0 and 2.')
+
+            return self.__get_mask(4, 3, conf, cumulative).astype(int)
+        elif self.collection == 1:
+            raise Exception('Water mask is not available for Lansat pre-collection data.')
 
     def get_snow_mask(self, conf, cumulative = False):
         '''Generate a water body mask.
 
         Parameters
             conf		-	Level of confidence that snow/ice exists.
-            cumulative	-	A Boolean value indicating whether the masking is cumulative.
+            cumulative	-	A Boolean value indicating whether to get masker with confidence value larger than the given one..
 
         Return
             mask 		-	A two-dimension binary mask.
         '''
-        return self.__get_mask(10, 3, conf, cumulative).astype(int)
+
+        if self.collection == 0:
+            if conf == 1 or conf == 2:
+                raise Exception('Creating snow mask for pre-collection data only accepts confidence value 0 and 3.')
+
+            return self.__get_mask(10, 3, conf, cumulative).astype(int)
+        elif self.collection == 1:
+            return self.__get_mask(9, 3, conf, cumulative).astype(int)
 
     def get_fill_mask(self):
-        '''Generate a fill mask.
+        '''Generate a mask for designated fill pixels.
 
         Return
             mask        -   A two-dimensional binary mask
         '''
-        return self.__get_mask(0, 1, 1, False)
-
-    def get_multi_mask(self,
-        cloud = LandsatConfidence.none, cloud_cum = False,
-        cirrus = LandsatConfidence.none, cirrus_cum = False,
-        snow = LandsatConfidence.none, snow_cum = False,
-        veg = LandsatConfidence.none, veg_cum = False,
-        water = LandsatConfidence.none, water_cum = False,
-        inclusive = False):
-        '''Get mask with multiple conditions.
-
-        Parameters
-            cloud		-	Level of confidence that cloud exists. (default: confidence.none)
-            cloud_cum	-	A Boolean value indicating whether the cloud masking is cumulative.
-            cirrus		-	Level of confidence that cirrus exists. (default: confidence.none)
-            cirrus_cum	-	A Boolean value indicating whether the cirrus masking is cumulative. (default: False)
-            snow		-	Level of confidence that snow/ice exists. (default: confidence.none)
-            snow_cum 	-	A Boolean value indicating whether the snow masking is cumulative. (default: False)
-            veg			-	Level of confidence that vegetation exists. (default: confidence.none)
-            veg_cum		-	A Boolean value indicating whether the vegetation masking is cumulative. (default: False)
-            water		-	Level of confidence that water body exists. (default: confidence.none)
-            water_cum	-	A Boolean value indicating whether the water body masking is cumulative. (default: False)
-            inclusive	-	A Boolean value indicating whether the masking is inclusive or exclusive.
-
-        Returns
-            mask 		-	A two-dimension binary mask.
-        '''
-
-        # Basic mask
-        if inclusive:
-            final_mask = self.band_data < 0
-        else:
-            final_mask = self.band_data >= 0
-
-        tasks = [
-            [8, veg, veg_cum],     # veg pixel
-            [10, snow, snow_cum],    # Snow pixel
-            [12, cirrus, cirrus_cum],    # Cirrus pixel
-            [14, cloud, cloud_cum],    # Cloud pixel
-            [4, water, water_cum]      # Water body pixel
-        ]
-
-        for task in tasks:
-            mask = self.__get_mask(task[0], 3, task[1], task[2])
-
-            if inclusive:
-                final_mask = np.logical_or(final_mask, mask)
-            else:
-                final_mask = np.logical_and(final_mask, mask)
-
-        return final_mask.astype(int)
+        return self.__get_mask(0, 1, 1, False).astype(int)
 
     def __get_mask(self, bit_loc, bit_len, value, cumulative):
         '''Get mask with specific parameters.
@@ -240,7 +241,7 @@ class LandsatMasker(Masker):
             bit_loc		-	Location of the specific QA bits in the value string.
             bit_len		-	Length of the specific QA bits.
             value  		-	A value indicating the desired condition.
-            cumulative	-	A Boolean value indicating whether the masking is cumulative.
+            cumulative	-	A Boolean value indicating whether to get masker with confidence value larger than the given one..
         '''
 
         pos_value = bit_len << bit_loc
@@ -288,16 +289,40 @@ class ModisMasker(Masker):
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s', '--source', help='source type: landsat, modis', type=str)
-    parser.add_argument('-i', '--input', help='input image file path', type=str)
-    parser.add_argument('-o', '--output', help='output raster path')
+    parser.add_argument('source',
+                        help='source type: landsat, modis',
+                        choices=['landsat', 'modis'],
+                        type=str)
+    parser.add_argument('input',
+                        help='input image file path',
+                        type=str)
+    parser.add_argument('output',
+                        help='output raster path',
+                        type=str)
+    parser.add_argument('-cv', '--confidence_value',
+                        help='confidence value',
+                        choices=[-1, 0, 1, 2, 3],
+                        type=int)
 
     # landsat arguments
-    parser.add_argument('-c', '--confidence', help='level of confidence that a condition exists in a landsat image: high, medium, low, undefined, none', action='store')
-    parser.add_argument('-t', '--target', help='target object: cloud, cirrus, water, vegetation, snow', action='store')
+    parser.add_argument('-C', '--collection',
+                        help='collection number for the landsat image',
+                        choices=[0, 1],
+                        type=int)
+    parser.add_argument('-c', '--confidence',
+                        help='level of confidence that a condition exists in a landsat image: high, medium, low, undefined, none',
+                        choices=['high', 'medium', 'low', 'undefined', 'none'],
+                        type=str)
+    parser.add_argument('-m', '--mask',
+                        help='target mask: no_cloud, cloud, cloud_shadow, cirrus, water, snow, fill',
+                        choices=['no_cloud', 'cloud', 'cloud_shadow', 'cirrus', 'water', 'snow', 'fill'],
+                        type=str)
 
     # modis argument
-    parser.add_argument('-q', '--quality', help='Level of data quality of MODIS land products at each pixel: high, medium, low, low_cloud', action='store')
+    parser.add_argument('-q', '--quality',
+                        help='Level of data quality of MODIS land products at each pixel: high, medium, low, low_cloud',
+                        choices=['high', 'medium', 'low', 'low_cloud'],
+                        type=str)
 
     args = parser.parse_args()
 
@@ -310,20 +335,27 @@ def main():
             'none': LandsatConfidence.none
         }
 
-        masker = LandsatMasker(args.input)
+        masker = LandsatMasker(args.input, collection=args.collection)
+        value = conf_value[args.confidence] if args.confidence is not None else args.confidence_value
 
-        if args.target == 'cloud':
-            mask = masker.get_cloud_mask(conf_value[args.confidence])
-        elif args.target == 'cirrus':
-            mask = masker.get_cirrus_mask(conf_value[args.confidence])
-        elif args.target == 'water':
-            mask = masker.get_water_mask(conf_value[args.confidence])
-        elif args.target == 'vegetation':
-            mask = masker.get_veg_mask(conf_value[args.confidence])
-        elif args.target == 'snow':
-            mask = masker.get_snow_mask(conf_value[args.confidence])
+        if args.mask == 'no_cloud':
+            mask = masker.get_no_cloud_mask()
+        elif args.mask == 'fill':
+            mask = masker.get_fill_mask()
+        elif args.mask == 'cloud_shadow':
+            mask = masker.get_cloud_shadow_mask(value)
+        elif args.mask == 'cloud' and args.confidence is not None:
+            mask = masker.get_cloud_mask(value)
+        elif args.mask == 'cloud':
+            mask = masker.get_cloud_mask()
+        elif args.mask == 'cirrus':
+            mask = masker.get_cirrus_mask(value)
+        elif args.mask == 'water':
+            mask = masker.get_water_mask(value)
+        elif args.mask == 'snow':
+            mask = masker.get_snow_mask(value)
         else:
-            raise Exception('Masker type %s is unrecongized.' % args.target)
+            raise Exception('Masker type %s is unrecongized.' % args.mask)
 
         masker.save_tif(mask, args.output)
 
@@ -336,7 +368,7 @@ def main():
         }
 
         masker = ModisMasker(args.input)
-        mask = masker.get_qa_mask(quality_value[args.quality])
+        mask = masker.get_qa_mask(quality_value[args.confidence])
         masker.save_tif(mask, args.output)
     else:
         raise Exception('Given source %s is unrecongized.' % args.source)
