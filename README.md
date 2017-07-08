@@ -27,7 +27,11 @@ from pymasker import LandsatMasker
 from pymasker import LandsatConfidence
 
 # load the QA band directly
-masker = LandsatMasker('LC80170302014272LGN00_BQA.TIF')
+#
+# The "collection" parameter is required for landsat to specify the collection
+# number. Acceptable number: 0 (pre-collection), 1 (collection-1)
+#
+masker = LandsatMasker('LC80170302014272LGN00_BQA.TIF', collection=0)
 
 # algorithm has high confidence that this condition exists
 # (67-100 percent confidence)
