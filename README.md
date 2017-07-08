@@ -81,6 +81,9 @@ output OUTPUT
 Landsat arguments:
 
 ```
+-C, --collection  LANDSAT COLLECTION NUMBER
+  collection number of input image: 0 (pre-collection), 1
+
 -c, --confidence CONFIDENCE
   level of confidence that a condition exists in a landsat image:
   high, medium, low, undefined, none
